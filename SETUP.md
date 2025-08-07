@@ -322,7 +322,7 @@ Banco PostgreSQL serverless na nuvem.
 3. **Obter string de conexão:**
    - No dashboard do projeto, vá em "Connection Details"
    - Copie a "Connection string"
-   - Adicione no arquivo `.env.local`:
+   - Adicione no arquivo `.env`:
 
    ```bash
    DATABASE_URL="postgresql://username:password@ep-example-123456.us-east-1.aws.neon.tech/neondb?sslmode=require"

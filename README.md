@@ -36,13 +36,13 @@ npm install
 ```
 
 ### 3. Configure as variáveis de ambiente
-Crie um arquivo `.env.local` na raiz do projeto baseado no `.env.example`:
+Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Preencha as variáveis necessárias no arquivo `.env.local`.
+Preencha as variáveis necessárias no arquivo `.env`.
 
 ### 4. Configure o banco de dados
 

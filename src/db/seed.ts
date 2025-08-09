@@ -537,25 +537,25 @@ const products = [
 ];
 
 async function main() {
-  console.log("🌱 Iniciando o seeding do banco de dados...");
+  console.log("Iniciando o seeding do banco de dados...");
 
   try {
     // Limpar dados existentes
-    console.log("🧹 Limpando dados existentes...");
+    console.log("Limpando dados existentes...");
     await db.delete(productVariantTable);
     await db.delete(productTable);
     await db.delete(categoryTable);
-    console.log("✅ Dados limpos com sucesso!");
+    console.log("Dados limpos com sucesso!");
 
     // Inserir categorias primeiro
     const categoryMap = new Map<string, string>();
 
-    console.log("📂 Criando categorias...");
+    console.log("Criando categorias...");
     for (const categoryData of categories) {
       const categoryId = crypto.randomUUID();
       const categorySlug = generateSlug(categoryData.name);
 
-      console.log(`  📁 Criando categoria: ${categoryData.name}`);
+      console.log(`  Criando categoria: ${categoryData.name}`);
 
       await db.insert(categoryTable).values({
         id: categoryId,
@@ -578,7 +578,7 @@ async function main() {
         );
       }
 
-      console.log(`📦 Criando produto: ${productData.name}`);
+      console.log(`Criando produto: ${productData.name}`);
 
       await db.insert(productTable).values({
         id: productId,
@@ -597,7 +597,7 @@ async function main() {
             variantData.color as keyof (typeof productImages)[typeof productKey]
           ] || [];
 
-        console.log(`  🎨 Criando variante: ${variantData.color}`);
+        console.log(`  Criando variante: ${variantData.color}`);
 
         await db.insert(productVariantTable).values({
           id: variantId,
@@ -611,9 +611,9 @@ async function main() {
       }
     }
 
-    console.log("✅ Seeding concluído com sucesso!");
+    console.log("Seeding concluído com sucesso!");
     console.log(
-      `📊 Foram criadas ${categories.length} categorias, ${
+      `Foram criadas ${categories.length} categorias, ${
         products.length
       } produtos com ${products.reduce(
         (acc, p) => acc + p.variants.length,
@@ -621,7 +621,7 @@ async function main() {
       )} variantes.`,
     );
   } catch (error) {
-    console.error("❌ Erro durante o seeding:", error);
+    console.error("Erro durante o seeding:", error);
     throw error;
   }
 }

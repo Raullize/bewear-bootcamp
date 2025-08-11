@@ -2,19 +2,20 @@
 
 Este projeto foi desenvolvido durante o **Bootcamp E-Commerce** do [Full Stack Club](https://www.fullstackclub.com.br/), um curso completo para desenvolvimento de aplicações e-commerce modernas.
 
-> **Nota:** O projeto está atualmente na primeira etapa de desenvolvimento.
+> **Nota:** O projeto está atualmente em fase de desenvolvimento.
 
 ## 🚀 Tecnologias Utilizadas
 
 - **Next.js 15** - Framework React para produção
 - **TypeScript** - Tipagem estática para JavaScript
-- **Tailwind CSS** - Framework CSS utilitário
+- **Tailwind CSS** - Framework CSS utilitário (Mobile-First)
 - **Drizzle ORM** - ORM TypeScript-first para PostgreSQL
 - **PostgreSQL** - Banco de dados relacional (Neon)
 - **Better Auth** - Sistema de autenticação moderno e seguro
 - **React Hook Form** - Biblioteca para gerenciamento de formulários
 - **Zod** - Validação de esquemas TypeScript-first
 - **React Query** - Gerenciamento de estado do servidor
+- **React Number Format** - Formatação de números e valores monetários
 - **Shadcn/ui** - Componentes UI reutilizáveis
 - **ESLint + Prettier** - Linting e formatação de código
 
@@ -106,6 +107,16 @@ Para informações detalhadas sobre instalação e configuração das tecnologia
 
 📖 **[Guia de Instalação e Configuração](./SETUP.md)**
 
+## 📱 Abordagem Mobile-First
+
+Este projeto foi desenvolvido seguindo a metodologia **Mobile-First**, garantindo uma experiência otimizada em dispositivos móveis:
+
+- **Design Responsivo**: Layouts que se adaptam perfeitamente a diferentes tamanhos de tela
+- **Performance Otimizada**: Carregamento rápido em conexões móveis
+- **UX Mobile**: Interface pensada primeiro para dispositivos móveis
+- **Breakpoints Tailwind**: Utilização dos breakpoints do Tailwind CSS (sm, md, lg, xl, 2xl)
+- **Touch-Friendly**: Elementos interativos otimizados para toque
+
 ## 🎯 Funcionalidades Atuais
 
 - ✅ Configuração inicial do projeto
@@ -115,6 +126,8 @@ Para informações detalhadas sobre instalação e configuração das tecnologia
 - ✅ Autenticação com Better Auth e Google OAuth
 - ✅ Formulários com React Hook Form e validação Zod
 - ✅ Gerenciamento de estado do servidor com React Query
+- ✅ Design responsivo com abordagem Mobile-First
+- ✅ Formatação de valores monetários com React Number Format
 - ✅ Configuração de ESLint e Prettier
 - ✅ Componentes UI com Shadcn
 

@@ -11,6 +11,7 @@ Este guia fornece instruções detalhadas para configurar todas as tecnologias u
 - [Better Auth](#better-auth)
 - [React Hook Form + Zod](#react-hook-form--zod)
 - [React Query](#react-query)
+- [React Number Format](#react-number-format)
 - [Google OAuth Setup](#google-oauth-setup)
 - [Configurações do Prettier/ESLint](#configurações-do-prettiereslint)
 - [Plugin de Ordenação Tailwind e Imports](#plugin-de-ordenação-tailwind-e-imports)
@@ -353,6 +354,131 @@ function useCreateProduct() {
     },
   });
 }
+```
+
+---
+
+## React Number Format
+
+Biblioteca para formatação de números, valores monetários, telefones, CEP e outros formatos.
+
+### Instalação
+
+```bash
+npm install react-number-format
+```
+
+### Principais Componentes
+
+**1. NumericFormat** - Para números e valores monetários:
+
+```typescript
+import { NumericFormat } from "react-number-format";
+
+// Valor monetário
+<NumericFormat
+  value={1234.56}
+  displayType="text"
+  thousandSeparator="."
+  decimalSeparator=","
+  prefix="R$ "
+  decimalScale={2}
+  fixedDecimalScale
+/>
+// Resultado: R$ 1.234,56
+
+// Input de valor monetário
+<NumericFormat
+  placeholder="R$ 0,00"
+  thousandSeparator="."
+  decimalSeparator=","
+  prefix="R$ "
+  decimalScale={2}
+  allowNegative={false}
+  onValueChange={(values) => {
+    const { floatValue } = values;
+    console.log(floatValue); // Valor numérico
+  }}
+/>
+```
+
+**2. PatternFormat** - Para formatos com padrões (telefone, CEP, etc.):
+
+```typescript
+import { PatternFormat } from "react-number-format";
+
+// Telefone
+<PatternFormat
+  format="(##) #####-####"
+  placeholder="(11) 99999-9999"
+  mask="_"
+  onValueChange={(values) => {
+    const { value } = values;
+    console.log(value); // Apenas números
+  }}
+/>
+
+// CEP
+<PatternFormat
+  format="#####-###"
+  placeholder="00000-000"
+  mask="_"
+/>
+```
+
+### Exemplo Prático no Projeto
+
+```typescript
+// src/components/price-input.tsx
+import { NumericFormat } from "react-number-format";
+
+interface PriceInputProps {
+  value?: number;
+  onChange: (value: number | undefined) => void;
+  placeholder?: string;
+}
+
+export function PriceInput({ value, onChange, placeholder }: PriceInputProps) {
+  return (
+    <NumericFormat
+      value={value}
+      placeholder={placeholder || "R$ 0,00"}
+      thousandSeparator="."
+      decimalSeparator=","
+      prefix="R$ "
+      decimalScale={2}
+      allowNegative={false}
+      className="w-full px-3 py-2 border rounded-md"
+      onValueChange={(values) => {
+        onChange(values.floatValue);
+      }}
+    />
+  );
+}
+```
+
+### Integração com React Hook Form
+
+```typescript
+import { Controller } from "react-hook-form";
+import { NumericFormat } from "react-number-format";
+
+<Controller
+  name="price"
+  control={control}
+  render={({ field: { onChange, value } }) => (
+    <NumericFormat
+      value={value}
+      thousandSeparator="."
+      decimalSeparator=","
+      prefix="R$ "
+      decimalScale={2}
+      onValueChange={(values) => {
+        onChange(values.floatValue);
+      }}
+    />
+  )}
+/>
 ```
 
 ---
@@ -708,7 +834,18 @@ echo $GOOGLE_CLIENT_SECRET
 # queryClient.clear()
 ```
 
-**5. Problemas com formulários (React Hook Form + Zod):**
+**5. Problemas com React Number Format:**
+```bash
+# Verificar se a dependência está instalada
+npm list react-number-format
+
+# Problemas comuns:
+# - Valor não está sendo formatado: verificar se está usando displayType="text"
+# - Input não aceita entrada: verificar se está usando onValueChange em vez de onChange
+# - Formato brasileiro não funciona: verificar thousandSeparator="." e decimalSeparator=","
+```
+
+**6. Problemas com formulários (React Hook Form + Zod):**
 ```bash
 # Verificar se as dependências estão instaladas
 npm list react-hook-form zod @hookform/resolvers
@@ -717,7 +854,7 @@ npm list react-hook-form zod @hookform/resolvers
 # resolver: zodResolver(schema)
 ```
 
-**6. Problemas com ESLint:**
+**7. Problemas com ESLint:**
 ```bash
 # Limpar cache do ESLint
 npx eslint --cache-location .eslintcache --cache
@@ -726,7 +863,7 @@ npx eslint --cache-location .eslintcache --cache
 npx eslint --print-config src/app/page.tsx
 ```
 
-**7. Problemas com Prettier:**
+**8. Problemas com Prettier:**
 ```bash
 # Verificar configuração
 npx prettier --check .

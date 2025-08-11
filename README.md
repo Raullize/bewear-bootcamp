@@ -58,10 +58,16 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 
 # Better Auth
 BETTER_AUTH_SECRET="your-secret-key-here"
+BETTER_AUTH_URL="http://localhost:3000"
 
 # Google OAuth
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# Stripe - Pagamentos
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
 ```
 
 ### 4. Configure o Google OAuth
@@ -82,7 +88,53 @@ Para habilitar a autenticação com Google, siga estes passos:
    - **URIs de redirecionamento autorizados**: `http://localhost:3000/api/auth/callback/google`
 8. **Copie o Client ID e Client Secret** para o arquivo `.env`
 
-### 5. Configure o banco de dados
+### 5. Configure o Stripe (Pagamentos)
+
+Para habilitar pagamentos com Stripe:
+
+1. **Acesse o [Stripe Dashboard](https://dashboard.stripe.com/)**
+2. **Crie uma conta** ou faça login
+3. **Vá para "Developers" > "API keys"**
+4. **Copie as chaves de teste**:
+   - **Publishable key** (pk_test_...)
+   - **Secret key** (sk_test_...)
+5. **Configure as variáveis no arquivo `.env`**
+
+#### Testando Pagamentos
+
+Use estes dados de teste para simular pagamentos:
+
+- **Cartão de Crédito**: `4242 4242 4242 4242`
+- **Data de Validade**: Qualquer data futura (ex: 12/34)
+- **CVC**: Qualquer 3 dígitos (ex: 123)
+- **CEP**: Qualquer CEP válido
+
+#### Configurar Webhooks (Opcional)
+
+Para receber notificações de pagamento:
+
+1. **Instale o Stripe CLI**:
+   ```bash
+   # Windows (via winget)
+   winget install Stripe.StripeCli
+   ```
+
+2. **Faça login no Stripe**:
+   ```bash
+   stripe login
+   ```
+
+3. **Escute webhooks localmente**:
+   ```bash
+   stripe listen --forward-to localhost:3000/api/stripe/webhook
+   ```
+
+4. **Copie o webhook secret** exibido e adicione ao `.env`:
+   ```env
+   STRIPE_WEBHOOK_SECRET="whsec_..."
+   ```
+
+### 6. Configure o banco de dados
 
 #### Executar migrações:
 ```bash
@@ -94,7 +146,7 @@ npx drizzle-kit push
 npm run seed
 ```
 
-### 6. Execute o projeto
+### 7. Execute o projeto
 ```bash
 npm run dev
 ```

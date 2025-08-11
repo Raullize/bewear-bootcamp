@@ -12,6 +12,7 @@ Este guia fornece instruções detalhadas para configurar todas as tecnologias u
 - [React Hook Form + Zod](#react-hook-form--zod)
 - [React Query](#react-query)
 - [React Number Format](#react-number-format)
+- [Stripe](#stripe)
 - [Google OAuth Setup](#google-oauth-setup)
 - [Configurações do Prettier/ESLint](#configurações-do-prettiereslint)
 - [Plugin de Ordenação Tailwind e Imports](#plugin-de-ordenação-tailwind-e-imports)
@@ -483,6 +484,223 @@ import { NumericFormat } from "react-number-format";
 
 ---
 
+## Stripe
+
+Configuração completa do Stripe para processamento de pagamentos.
+
+### Instalação
+
+As dependências do Stripe já estão incluídas no projeto:
+
+```bash
+npm install stripe @stripe/stripe-js
+```
+
+### Configuração das Variáveis de Ambiente
+
+Adicione as seguintes variáveis ao seu arquivo `.env`:
+
+```env
+# Stripe - Pagamentos
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+```
+
+### Obtendo as Chaves do Stripe
+
+**1. Acesse o Dashboard:**
+- Vá para [Stripe Dashboard](https://dashboard.stripe.com/)
+- Crie uma conta ou faça login
+
+**2. Obter Chaves de API:**
+- Navegue para "Developers" > "API keys"
+- Copie a **Publishable key** (pk_test_...)
+- Copie a **Secret key** (sk_test_...)
+
+### Configuração do Stripe CLI (Para Webhooks)
+
+**1. Instalar Stripe CLI:**
+
+```bash
+# Windows (via winget)
+winget install Stripe.StripeCli
+
+# Ou baixar diretamente do site oficial:
+# https://github.com/stripe/stripe-cli/releases/latest
+# Extrair o arquivo stripe.exe para um diretório (ex: C:\Users\[seu-usuario]\stripe)
+
+# macOS (via Homebrew)
+brew install stripe/stripe-cli/stripe
+
+# Linux (via curl)
+curl -s https://packages.stripe.com/api/security/keypair/stripe-cli-gpg/public | gpg --dearmor | sudo tee /usr/share/keyrings/stripe.gpg
+echo "deb [signed-by=/usr/share/keyrings/stripe.gpg] https://packages.stripe.com/stripe-cli-debian-local stable main" | sudo tee -a /etc/apt/sources.list.d/stripe.list
+sudo apt update
+sudo apt install stripe
+```
+
+**Configurar PATH (Windows):**
+
+Se você baixou manualmente o Stripe CLI, adicione o diretório ao PATH:
+
+```powershell
+# Temporariamente (apenas para a sessão atual)
+$env:PATH += ";C:\Users\[seu-usuario]\caminho\para\stripe"
+
+# Permanentemente (via System Properties > Environment Variables)
+# Ou use o comando abaixo (requer reiniciar o terminal):
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Users\[seu-usuario]\caminho\para\stripe", "User")
+```
+
+**2. Autenticar com Stripe:**
+
+```bash
+stripe login
+
+# Se o comando 'stripe' não for reconhecido no Windows, use o caminho completo:
+# & "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe" login
+```
+
+**3. Escutar Webhooks Localmente:**
+
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+
+# Se o comando 'stripe' não for reconhecido no Windows, use o caminho completo:
+# & "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe" listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+**4. Copiar Webhook Secret:**
+- O comando acima exibirá um webhook secret (whsec_...)
+- Adicione-o ao arquivo `.env`
+
+### Exemplo de Uso no Projeto
+
+**1. Criando Sessão de Checkout:**
+
+```typescript
+// src/actions/create-checkout-session/index.ts
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20",
+});
+
+export async function createCheckoutSession(items: CartItem[]) {
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    line_items: items.map((item) => ({
+      price_data: {
+        currency: "brl",
+        product_data: {
+          name: item.name,
+        },
+        unit_amount: Math.round(item.price * 100), // Centavos
+      },
+      quantity: item.quantity,
+    })),
+    mode: "payment",
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/success`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/cart`,
+  });
+
+  return session;
+}
+```
+
+**2. Redirecionamento para Checkout:**
+
+```typescript
+// src/components/checkout-button.tsx
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+);
+
+export function CheckoutButton({ items }: { items: CartItem[] }) {
+  const handleCheckout = async () => {
+    const stripe = await stripePromise;
+    const session = await createCheckoutSession(items);
+    
+    await stripe?.redirectToCheckout({
+      sessionId: session.id,
+    });
+  };
+
+  return (
+    <button onClick={handleCheckout}>
+      Finalizar Compra
+    </button>
+  );
+}
+```
+
+### Dados de Teste
+
+Use estes cartões para testar pagamentos:
+
+**Cartões de Sucesso:**
+- **Visa**: `4242 4242 4242 4242`
+- **Visa (débito)**: `4000 0566 5566 5556`
+- **Mastercard**: `5555 5555 5555 4444`
+- **American Express**: `3782 822463 10005`
+
+**Cartões de Falha:**
+- **Cartão recusado**: `4000 0000 0000 0002`
+- **Fundos insuficientes**: `4000 0000 0000 9995`
+- **CVC incorreto**: `4000 0000 0000 0127`
+
+**Dados Adicionais:**
+- **Data de Validade**: Qualquer data futura (ex: 12/34)
+- **CVC**: Qualquer 3 dígitos (ex: 123)
+- **CEP**: Qualquer CEP válido
+
+### Webhook Handler
+
+```typescript
+// src/app/api/stripe/webhook/route.ts
+import { NextRequest } from "next/server";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20",
+});
+
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+export async function POST(req: NextRequest) {
+  const body = await req.text();
+  const signature = req.headers.get("stripe-signature")!;
+
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+  } catch (err) {
+    console.error("Webhook signature verification failed.", err);
+    return new Response("Webhook signature verification failed", {
+      status: 400,
+    });
+  }
+
+  switch (event.type) {
+    case "checkout.session.completed":
+      const session = event.data.object as Stripe.Checkout.Session;
+      // Processar pagamento bem-sucedido
+      console.log("Payment succeeded:", session.id);
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  return new Response("Webhook received", { status: 200 });
+}
+```
+
+---
+
 ## Google OAuth Setup
 
 Configuração detalhada para autenticação com Google.
@@ -845,7 +1063,47 @@ npm list react-number-format
 # - Formato brasileiro não funciona: verificar thousandSeparator="." e decimalSeparator=","
 ```
 
-**6. Problemas com formulários (React Hook Form + Zod):**
+**6. Problemas com Stripe:**
+```bash
+# Verificar se as dependências estão instaladas
+npm list stripe @stripe/stripe-js
+
+# Verificar variáveis de ambiente
+echo $NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+echo $STRIPE_SECRET_KEY
+echo $STRIPE_WEBHOOK_SECRET
+
+# Verificar se o Stripe CLI está instalado
+stripe --version
+
+# Se não funcionar no Windows, tente uma das opções:
+# 1. Caminho completo (winget):
+# & "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe" --version
+
+# 2. Caminho completo (download manual):
+# & "C:\Users\[seu-usuario]\caminho\para\stripe\stripe.exe" --version
+
+# 3. Adicionar ao PATH temporariamente:
+# $env:PATH += ";C:\Users\[seu-usuario]\caminho\para\stripe"
+# stripe --version
+
+# Problemas comuns:
+# - Erro "No such payment_intent": verificar se está usando as chaves corretas (test vs live)
+# - Webhook não funciona: verificar se o endpoint está correto e o secret está configurado
+# - Pagamento não processa: verificar se o valor está em centavos (multiplicar por 100)
+# - Erro de CORS: verificar se NEXT_PUBLIC_APP_URL está configurado corretamente
+
+# Testar webhook localmente
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+
+# Se não funcionar no Windows, use o caminho completo:
+# & "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Stripe.StripeCli_Microsoft.Winget.Source_8wekyb3d8bbwe\stripe.exe" listen --forward-to localhost:3000/api/stripe/webhook
+
+# Testar pagamento com cartão de teste
+# Usar: 4242 4242 4242 4242 (Visa)
+```
+
+**7. Problemas com formulários (React Hook Form + Zod):**
 ```bash
 # Verificar se as dependências estão instaladas
 npm list react-hook-form zod @hookform/resolvers
@@ -854,7 +1112,7 @@ npm list react-hook-form zod @hookform/resolvers
 # resolver: zodResolver(schema)
 ```
 
-**7. Problemas com ESLint:**
+**8. Problemas com ESLint:**
 ```bash
 # Limpar cache do ESLint
 npx eslint --cache-location .eslintcache --cache
@@ -863,7 +1121,7 @@ npx eslint --cache-location .eslintcache --cache
 npx eslint --print-config src/app/page.tsx
 ```
 
-**8. Problemas com Prettier:**
+**9. Problemas com Prettier:**
 ```bash
 # Verificar configuração
 npx prettier --check .

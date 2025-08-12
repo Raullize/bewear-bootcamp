@@ -70,7 +70,7 @@ STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
 ```
 
-### 4. Configure o Google OAuth
+### 4. Configure o Google OAuth (Opcional)
 
 Para habilitar a autenticação com Google, siga estes passos:
 
@@ -100,18 +100,9 @@ Para habilitar pagamentos com Stripe:
    - **Secret key** (sk_test_...)
 5. **Configure as variáveis no arquivo `.env`**
 
-#### Testando Pagamentos
+#### Configurar Webhooks do Stripe (OBRIGATÓRIO para testes)
 
-Use estes dados de teste para simular pagamentos:
-
-- **Cartão de Crédito**: `4242 4242 4242 4242`
-- **Data de Validade**: Qualquer data futura (ex: 12/34)
-- **CVC**: Qualquer 3 dígitos (ex: 123)
-- **CEP**: Qualquer CEP válido
-
-#### Configurar Webhooks (Opcional)
-
-Para receber notificações de pagamento:
+⚠️ **IMPORTANTE**: Para que os pagamentos funcionem corretamente e o status dos pedidos seja atualizado de "Pagamento Pendente" para "Pago", é **obrigatório** ter o Stripe CLI em execução durante os testes.
 
 1. **Instale o Stripe CLI**:
    ```bash
@@ -124,7 +115,7 @@ Para receber notificações de pagamento:
    stripe login
    ```
 
-3. **Escute webhooks localmente**:
+3. **Escute webhooks localmente** (mantenha este comando em execução):
    ```bash
    stripe listen --forward-to localhost:3000/api/stripe/webhook
    ```
@@ -133,6 +124,22 @@ Para receber notificações de pagamento:
    ```env
    STRIPE_WEBHOOK_SECRET="whsec_..."
    ```
+
+#### Testando Pagamentos
+
+📝 **Antes de testar, certifique-se de que:**
+- O Stripe CLI está em execução (`stripe listen --forward-to localhost:3000/api/stripe/webhook`)
+- O servidor de desenvolvimento está rodando (`npm run dev`)
+- As variáveis de ambiente do Stripe estão configuradas
+
+Use estes dados de teste para simular pagamentos:
+
+- **Cartão de Crédito**: `4242 4242 4242 4242`
+- **Data de Validade**: Qualquer data futura (ex: 12/34)
+- **CVC**: Qualquer 3 dígitos (ex: 123)
+- **CEP**: Qualquer CEP válido
+
+✅ **Após o pagamento bem-sucedido**, o webhook do Stripe atualizará automaticamente o status do pedido para "Pago".
 
 ### 6. Configure o banco de dados
 
